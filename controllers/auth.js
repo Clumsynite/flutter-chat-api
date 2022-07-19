@@ -52,15 +52,15 @@ const signin = async (req, res) => {
 const isTokenValid = async (req, res) => {
   try {
     const token = req.header("x-auth-token");
-    if (!token) return handleError(res, false);
+    if (!token) return res.status(500).json(res, false);
     const isVerified = jwt.verify(token, JWT_SECRET);
-    if (!isVerified) return handleError(res, false);
+    if (!isVerified) return res.status(500).json(res, false);
 
     const decodedToken = jwt.decode(token);
     const user = await User.findById(decodedToken._id);
-    if (!user) return handleError(res, 500);
+    if (!user) return res.status(500).json(res, 500);
 
-    return handleSuccess(res, true);
+    return res.status(200).json(res, true);
   } catch (error) {
     return handleError(res, error);
   }
