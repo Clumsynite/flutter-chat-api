@@ -6,6 +6,7 @@ const cors = require("cors");
 const { PORT, DB_URL } = require("./config");
 
 const authRouter = require("./routes/auth");
+const userRouter = require("./routes/user");
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(morgan("dev"));
 app.use(express.json());
 
 app.use(authRouter);
+app.use(userRouter);
 
 mongoose
   .connect(DB_URL)
