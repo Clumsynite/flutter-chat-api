@@ -40,9 +40,9 @@ const signin = async (req, res) => {
 
     const passwordMatches = await bcryptjs.compare(password, usernameExists.password);
     if (!passwordMatches) return handleBadRequest(res, "Username or password doesn't match");
-
-    const token = jwt.sign({ user: usernameExists._id }, JWT_SECRET);
     const user = usernameExists._doc;
+
+    const token = jwt.sign({ ...user }, JWT_SECRET);
     return handleSuccess(res, { token, ...user });
   } catch (error) {
     return handleError(res, error);
@@ -52,15 +52,15 @@ const signin = async (req, res) => {
 const isTokenValid = async (req, res) => {
   try {
     const token = req.header("x-auth-token");
-    if (!token) return res.status(500).json(res, false);
+    if (!token) return res.status(500).json(false);
     const isVerified = jwt.verify(token, JWT_SECRET);
-    if (!isVerified) return res.status(500).json(res, false);
+    if (!isVerified) return res.status(500).json(false);
 
     const decodedToken = jwt.decode(token);
     const user = await User.findById(decodedToken._id);
-    if (!user) return res.status(500).json(res, 500);
+    if (!user) return res.status(500).json(500);
 
-    return res.status(200).json(res, true);
+    return res.status(200).json(true);
   } catch (error) {
     return handleError(res, error);
   }
