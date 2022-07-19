@@ -49,7 +49,25 @@ const signin = async (req, res) => {
   }
 };
 
+const isTokenValid = async (req, res) => {
+  try {
+    const token = req.header("x-auth-token");
+    if (!token) return handleError(res, false);
+    const isVerified = jwt.verify(token, JWT_SECRET);
+    if (!isVerified) return handleError(res, false);
+
+    const decodedToken = jwt.decode(token);
+    const user = await User.findById(decodedToken._id);
+    if (!user) return handleError(res, 500);
+
+    return handleSuccess(res, true);
+  } catch (error) {
+    return handleError(res, error);
+  }
+};
+
 module.exports = {
   signup,
   signin,
+  isTokenValid,
 };
