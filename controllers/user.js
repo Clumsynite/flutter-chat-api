@@ -1,4 +1,5 @@
 const { handleError, handleBadRequest, handleSuccess } = require("../helper/functions");
+const FriendRequest = require("../models/FriendRequest");
 const User = require("../models/User");
 
 const getUser = async (req, res) => {
@@ -14,6 +15,8 @@ const getUser = async (req, res) => {
 const getAllUsers = async (req, res) => {
   try {
     const users = await User.find({ _id: { $ne: req.user } });
+    const friendRequests = await FriendRequest.find({ from: req.user });
+    const requestedContacts = friendRequests.map((x) => x.to);
     const mappedUsers = users.map((user) => {
       const { _id, username, email, firstName, lastName, avatar, isOnline } = user;
       const contactObject = {
@@ -29,6 +32,8 @@ const getAllUsers = async (req, res) => {
       const isFriend = user.friends.includes(req.user);
       contactObject.isFriend = isFriend;
 
+      // if contact is not already a friend, check if user had sent a friend request
+      if (!isFriend) contactObject.isRequested = requestedContacts.includes(_id.toString());
       return contactObject;
     });
     return handleSuccess(res, mappedUsers);
