@@ -14,7 +14,24 @@ const getUser = async (req, res) => {
 const getAllUsers = async (req, res) => {
   try {
     const users = await User.find({ _id: { $ne: req.user } });
-    return handleSuccess(res, users);
+    const mappedUsers = users.map((user) => {
+      const { _id, username, email, firstName, lastName, avatar, isOnline } = user;
+      const contactObject = {
+        _id,
+        username,
+        email,
+        firstName,
+        lastName,
+        avatar,
+        isOnline,
+      };
+
+      const isFriend = user.friends.includes(req.user);
+      contactObject.isFriend = isFriend;
+
+      return contactObject;
+    });
+    return handleSuccess(res, mappedUsers);
   } catch (error) {
     return handleError(res, error);
   }
