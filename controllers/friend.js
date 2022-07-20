@@ -5,6 +5,8 @@ const User = require("../models/User");
 const createfriendRequest = async (req, res) => {
   try {
     const { to } = req.body;
+    // TODO - if user has sent a friend request and contact creates another request for user
+    // TODO - consider that as accepted and go with accept friend request logic
     const existingRequest = await FriendRequest.findOne({ from: req.user, to });
     if (existingRequest) return handleBadRequest(res, "Friend Request already exists");
     const userToFriend = await User.findById(to);
@@ -77,9 +79,35 @@ const getFriendRequestsReceived = async (req, res) => {
   }
 };
 
+const acceptFriendRequest = async (req, res) => {
+  try {
+    const { _id } = req.body;
+
+    const friendRequest = await FriendRequest.findById(_id);
+    if (!friendRequest) return handleBadRequest(res, "Friend Request Not Found");
+
+    const user = await User.findById(req.user);
+    if (user.friends.includes(friendRequest.from.toString())) {
+      return handleBadRequest(res, "Friend Request Already Accepted!");
+    }
+
+    user.friends.push(friendRequest.from);
+    const contact = await User.findById(friendRequest.from);
+    if (!contact.friends.includes(req.user)) contact.friends.push(req.user);
+
+    await friendRequest.delete();
+    await user.save();
+    await contact.save();
+    return handleSuccess(res, "Friend Request Accepted Successfully!");
+  } catch (error) {
+    return handleError(res, error);
+  }
+};
+
 module.exports = {
   createfriendRequest,
   deletefriendRequest,
   getFriendRequestCount,
   getFriendRequestsReceived,
+  acceptFriendRequest,
 };
