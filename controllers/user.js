@@ -11,4 +11,13 @@ const getUser = async (req, res) => {
   }
 };
 
-module.exports = { getUser };
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({ _id: { $ne: req.user } });
+    return handleSuccess(res, users);
+  } catch (error) {
+    return handleError(res, error);
+  }
+};
+
+module.exports = { getUser, getAllUsers };
