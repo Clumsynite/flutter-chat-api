@@ -118,6 +118,30 @@ const cancelFriendRequest = async (req, res) => {
   }
 };
 
+const removeFriend = async (req, res) => {
+  try {
+    const { _id } = req.params;
+
+    const user = await User.findById(req.user);
+    const contact = await User.findById(_id);
+
+    if (!user || !contact) return handleBadRequest(res, "Profile not found!");
+
+    const userFriends = [...user.friends].filter((friend) => friend !== _id);
+    const contactFriends = [...contact.friends].filter((friend) => friend !== req.user);
+
+    user.friends = userFriends;
+    contact.friends = contactFriends;
+
+    await user.save();
+    await contact.save();
+
+    return handleSuccess(res, "Friend Removed Successfully!");
+  } catch (error) {
+    return handleError(res, error);
+  }
+};
+
 module.exports = {
   createfriendRequest,
   deletefriendRequest,
@@ -125,4 +149,5 @@ module.exports = {
   getFriendRequestsReceived,
   acceptFriendRequest,
   cancelFriendRequest,
+  removeFriend,
 };
