@@ -20,6 +20,19 @@ const createfriendRequest = async (req, res) => {
   }
 };
 
+const deletefriendRequest = async (req, res) => {
+  try {
+    const { to } = req.params;
+    const existingRequest = await FriendRequest.findOne({ from: req.user, to, status: { $ne: "REJECTED" } });
+    if (!existingRequest) return handleBadRequest(res, "Friend Request was already Cancelled!");
+    await existingRequest.delete();
+    return handleSuccess(res, true);
+  } catch (error) {
+    return handleError(res, error);
+  }
+};
+
 module.exports = {
   createfriendRequest,
+  deletefriendRequest,
 };
