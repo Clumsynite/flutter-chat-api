@@ -41,8 +41,45 @@ const getFriendRequestCount = async (req, res) => {
   }
 };
 
+const getFriendRequestsReceived = async (req, res) => {
+  try {
+    const friendRequests = await FriendRequest.find({ to: req.user });
+    const mappedFriendRequests = [];
+    const promiseContacts = [];
+
+    friendRequests.forEach((request) => promiseContacts.push(User.findById(request.from)));
+
+    const resolvedContacts = await Promise.all(promiseContacts);
+    for (let i = 0; i < friendRequests.length; i += 1) {
+      const request = friendRequests[i];
+      const contact = resolvedContacts.find((x) => x._id.toString() === request.from);
+      const { _id, username, email, firstName, lastName, avatar, isOnline } = contact;
+      const contactObject = {
+        _id,
+        username,
+        email,
+        firstName,
+        lastName,
+        avatar,
+        isOnline,
+        isFriend: false,
+      };
+
+      const requestObject = {
+        ...request._doc,
+        contact: contactObject,
+      };
+      mappedFriendRequests.push(requestObject);
+    }
+    return handleSuccess(res, mappedFriendRequests);
+  } catch (error) {
+    return handleError(res, error);
+  }
+};
+
 module.exports = {
   createfriendRequest,
   deletefriendRequest,
   getFriendRequestCount,
+  getFriendRequestsReceived,
 };
