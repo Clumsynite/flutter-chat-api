@@ -1,10 +1,10 @@
 const express = require("express");
 
-const requestController = require("../controllers/request");
+const friendController = require("../controllers/friend");
 const auth = require("../middleware/auth");
 
 const router = express.Router();
 
-router.post("/request/", auth, requestController.createRequest);
+router.post("/friend/", auth, friendController.createfriendRequest);
 
 module.exports = router;

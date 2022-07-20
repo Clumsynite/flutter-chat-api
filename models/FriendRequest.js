@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const RequestSchema = mongoose.Schema(
+const FriendRequestSchema = mongoose.Schema(
   {
     from: {
       type: String,
@@ -19,6 +19,6 @@ const RequestSchema = mongoose.Schema(
   { timestamps: true }
 );
 
-const Request = mongoose.model("Request", RequestSchema);
+const FriendRequest = mongoose.model("FriendRequest", FriendRequestSchema);
 
-module.exports = Request;
+module.exports = FriendRequest;
