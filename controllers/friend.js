@@ -142,6 +142,23 @@ const removeFriend = async (req, res) => {
   }
 };
 
+const getAllFriends = async (req, res) => {
+  try {
+    const user = await User.findById(req.user);
+    const promisedFriends = user.friends.map((friend) => User.findById(friend));
+    const resolvedFriends = await Promise.all(promisedFriends);
+    const mappedFriends = [];
+    for (let i = 0; i < resolvedFriends.length; i += 1) {
+      const { _id, username, email, firstName, lastName, avatar, isOnline, lastSeen, createdAt } = resolvedFriends[i];
+      const friendObj = { _id, username, email, firstName, lastName, avatar, isOnline, lastSeen, createdAt };
+      mappedFriends.push(friendObj);
+    }
+    return handleSuccess(res, mappedFriends);
+  } catch (error) {
+    return handleError(res, error);
+  }
+};
+
 module.exports = {
   createfriendRequest,
   deletefriendRequest,
@@ -150,4 +167,5 @@ module.exports = {
   acceptFriendRequest,
   cancelFriendRequest,
   removeFriend,
+  getAllFriends,
 };
