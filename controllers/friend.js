@@ -104,10 +104,25 @@ const acceptFriendRequest = async (req, res) => {
   }
 };
 
+const cancelFriendRequest = async (req, res) => {
+  try {
+    const { _id } = req.body;
+
+    const friendRequest = await FriendRequest.findById(_id);
+    if (!friendRequest) return handleBadRequest(res, "Friend Request Not Found");
+
+    await friendRequest.delete();
+    return handleSuccess(res, "Friend Request Cancelled Successfully!");
+  } catch (error) {
+    return handleError(res, error);
+  }
+};
+
 module.exports = {
   createfriendRequest,
   deletefriendRequest,
   getFriendRequestCount,
   getFriendRequestsReceived,
   acceptFriendRequest,
+  cancelFriendRequest,
 };
