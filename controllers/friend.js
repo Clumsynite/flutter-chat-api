@@ -42,8 +42,8 @@ const deletefriendRequest = async (req, res) => {
     const { to } = req.params;
     const existingRequest = await FriendRequest.findOne({ from: req.user, to });
     if (!existingRequest) return handleBadRequest(res, "Friend Request was already Cancelled!");
-    req._io.emit(`${to}_friend`, false);
     await existingRequest.delete();
+    req._io.emit(`${to}_friend`, false);
     return handleSuccess(res, true);
   } catch (error) {
     return handleError(res, error);
@@ -114,6 +114,8 @@ const acceptFriendRequest = async (req, res) => {
     await friendRequest.delete();
     await user.save();
     await contact.save();
+    req._io.emit(`${contact._id.toString()}_friend`, true);
+
     return handleSuccess(res, "Friend Request Accepted Successfully!");
   } catch (error) {
     return handleError(res, error);
@@ -128,6 +130,7 @@ const cancelFriendRequest = async (req, res) => {
     if (!friendRequest) return handleBadRequest(res, "Friend Request Not Found");
 
     await friendRequest.delete();
+    req._io.emit(`${friendRequest.to.toString()}_friend`, true);
     return handleSuccess(res, "Friend Request Cancelled Successfully!");
   } catch (error) {
     return handleError(res, error);
@@ -152,6 +155,7 @@ const removeFriend = async (req, res) => {
     await user.save();
     await contact.save();
 
+    req._io.emit(`${contact._id.toString()}_friend`, true);
     return handleSuccess(res, "Friend Removed Successfully!");
   } catch (error) {
     return handleError(res, error);
