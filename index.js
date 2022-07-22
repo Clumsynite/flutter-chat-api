@@ -21,7 +21,10 @@ io.on("connection", (client) => {
   client.on("client_offline", (id) => handleClientOffline({ id, io }));
 });
 
-exports.io = io;
+app.use((req, res, next) => {
+  req._io = io;
+  return next();
+});
 
 app.use(cors());
 app.use(morgan("dev"));

@@ -5,18 +5,33 @@ const User = require("../models/User");
 const createfriendRequest = async (req, res) => {
   try {
     const { to } = req.body;
-    // TODO - if user has sent a friend request and contact creates another request for user
-    // TODO - consider that as accepted and go with accept friend request logic
     const existingRequest = await FriendRequest.findOne({ from: req.user, to });
     if (existingRequest) return handleBadRequest(res, "Friend Request already exists");
     const userToFriend = await User.findById(to);
     if (!userToFriend) return handleBadRequest(res, "User not Found");
-    let request = new FriendRequest({
-      from: req.user,
-      to,
-    });
-    request = await request.save();
-    return handleSuccess(res, request);
+
+    const incomingRequest = await FriendRequest.findOne({ from: to, to: req.user });
+    if (incomingRequest) {
+      const currrentUser = await User.findById(req.user);
+      if (currrentUser.friends.includes(to)) {
+        return handleBadRequest(res, "Friend Request Already Accepted!");
+      }
+
+      currrentUser.friends.push(to);
+      if (!userToFriend.friends.includes(req.user)) userToFriend.friends.push(req.user);
+
+      await incomingRequest.delete();
+      await currrentUser.save();
+      await userToFriend.save();
+    } else {
+      const request = new FriendRequest({
+        from: req.user,
+        to,
+      });
+      await request.save();
+    }
+    req._io.emit(`${to}_friend`, true);
+    return handleSuccess(res, { msg: "AAA" });
   } catch (error) {
     return handleError(res, error);
   }
@@ -27,6 +42,7 @@ const deletefriendRequest = async (req, res) => {
     const { to } = req.params;
     const existingRequest = await FriendRequest.findOne({ from: req.user, to });
     if (!existingRequest) return handleBadRequest(res, "Friend Request was already Cancelled!");
+    req._io.emit(`${to}_friend`, false);
     await existingRequest.delete();
     return handleSuccess(res, true);
   } catch (error) {
