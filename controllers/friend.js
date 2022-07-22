@@ -114,6 +114,7 @@ const acceptFriendRequest = async (req, res) => {
     await friendRequest.delete();
     await user.save();
     await contact.save();
+    req._io.emit(`${user._id.toString()}_friend`, true);
     req._io.emit(`${contact._id.toString()}_friend`, true);
 
     return handleSuccess(res, "Friend Request Accepted Successfully!");
