@@ -31,6 +31,7 @@ const createfriendRequest = async (req, res) => {
       await request.save();
     }
     req._io.emit(`${to}_friend`, true);
+    req._io.emit(`${req.user}_friend`, true);
     return handleSuccess(res, { msg: "AAA" });
   } catch (error) {
     return handleError(res, error);
