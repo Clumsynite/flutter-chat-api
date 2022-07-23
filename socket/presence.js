@@ -16,6 +16,7 @@ const handleClientOffline = async ({ id, io }) => {
   const user = await User.findById(id);
   if (user) {
     user.isOnline = false;
+    user.lastSeen = (new Date()).toISOString();
     await user.save();
     for (let i = 0; i < user.friends.length; i += 1) {
       const emitKey = `${user.friends[i]}_offline`;
