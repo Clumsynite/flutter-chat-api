@@ -2,6 +2,7 @@ const { handleError, handleBadRequest, handleSuccess } = require("../helper/func
 const FriendRequest = require("../models/FriendRequest");
 const User = require("../models/User");
 
+// create a friend request
 const createfriendRequest = async (req, res) => {
   try {
     const { to } = req.body;
@@ -10,8 +11,10 @@ const createfriendRequest = async (req, res) => {
     const userToFriend = await User.findById(to);
     if (!userToFriend) return handleBadRequest(res, "User not Found");
 
+    // check if there is already an incoming request from contact
     const incomingRequest = await FriendRequest.findOne({ from: to, to: req.user });
     if (incomingRequest) {
+      // if an incoming request exists, accept that request and add contact to friend list
       const currrentUser = await User.findById(req.user);
       if (currrentUser.friends.includes(to)) {
         return handleBadRequest(res, "Friend Request Already Accepted!");
@@ -24,6 +27,7 @@ const createfriendRequest = async (req, res) => {
       await currrentUser.save();
       await userToFriend.save();
     } else {
+      // if no incoming request exists, create a new request
       const request = new FriendRequest({
         from: req.user,
         to,
@@ -38,6 +42,8 @@ const createfriendRequest = async (req, res) => {
   }
 };
 
+// used to cancel a friend request send from user
+// request id is not available in this case
 const deletefriendRequest = async (req, res) => {
   try {
     const { to } = req.params;
@@ -51,6 +57,7 @@ const deletefriendRequest = async (req, res) => {
   }
 };
 
+// get number of requests pending to be accepted\rejectd
 const getFriendRequestCount = async (req, res) => {
   try {
     const friendRequests = await FriendRequest.find({ to: req.user });
@@ -60,6 +67,7 @@ const getFriendRequestCount = async (req, res) => {
   }
 };
 
+// get a list of friend requests
 const getFriendRequestsReceived = async (req, res) => {
   try {
     const friendRequests = await FriendRequest.find({ to: req.user });
@@ -96,6 +104,7 @@ const getFriendRequestsReceived = async (req, res) => {
   }
 };
 
+// accept an incoming friend request
 const acceptFriendRequest = async (req, res) => {
   try {
     const { _id } = req.body;
@@ -124,6 +133,8 @@ const acceptFriendRequest = async (req, res) => {
   }
 };
 
+// reject an incoming friend request
+// reques id is available in this case
 const cancelFriendRequest = async (req, res) => {
   try {
     const { _id } = req.body;
@@ -139,6 +150,7 @@ const cancelFriendRequest = async (req, res) => {
   }
 };
 
+// remove friend from user's friend list
 const removeFriend = async (req, res) => {
   try {
     const { _id } = req.params;
@@ -164,6 +176,7 @@ const removeFriend = async (req, res) => {
   }
 };
 
+// get all contacts from a user's friends list
 const getAllFriends = async (req, res) => {
   try {
     const user = await User.findById(req.user);
