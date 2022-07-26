@@ -30,7 +30,7 @@ const handleClientTyping = async ({ data, io }) => {
   io.emit(`${userId}_typing`, isTyping);
   const user = await User.findById(userId);
   for (let i = 0; i < user.friends.length; i += 1) {
-    io.emit(`${user.friends[i]}_typing`, { userId, isTyping });
+    io.emit(`${user.friends[i]}_friend_typing`, { userId, isTyping });
   }
 };
 
