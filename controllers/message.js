@@ -21,12 +21,14 @@ const sendMessage = async (req, res) => {
 const getMessagesForId = async (req, res) => {
   try {
     const { friend } = req.params;
-    const receivedMessages = Message.find({ from: friend, to: req.user });
-    const sentMessages = Message.find({ from: req.user, to: friend });
+    const promisedMessages = [
+      Message.find({ from: friend, to: req.user }),
+      Message.find({ from: req.user, to: friend }),
+    ];
 
-    const allMessages = [...receivedMessages, ...sentMessages];
+    const resolvedMessages = await Promise.all(promisedMessages);
+    const allMessages = [...resolvedMessages[0], ...resolvedMessages[1]];
     allMessages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-
     return handleSuccess(res, allMessages);
   } catch (error) {
     return handleError(res, error);
