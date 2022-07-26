@@ -25,10 +25,13 @@ const handleClientOffline = async ({ id, io }) => {
   }
 };
 
-const handleClientTyping = ({ data, io }) => {
+const handleClientTyping = async ({ data, io }) => {
   const { userId, isTyping } = data;
   io.emit(`${userId}_typing`, isTyping);
-  io.emit(`friend_typing`, { userId, isTyping });
+  const user = await User.findById(userId);
+  for (let i = 0; i < user.friends.length; i += 1) {
+    io.emit(`${user.friends[i]}_typing`, { userId, isTyping });
+  }
 };
 
 module.exports = {
