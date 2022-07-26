@@ -10,8 +10,8 @@ const sendMessage = async (req, res) => {
       text,
     });
     message = await message.save();
-    req._io.emit(`${to}_message_sent`);
-    req._io.emit(`${req.user}_message_sent`);
+    const emitKey = `message_to_${message.to}_from_${message.from}`;
+    req._io.emit(emitKey, message);
     return handleSuccess(res, message);
   } catch (error) {
     return handleError(res, error);
