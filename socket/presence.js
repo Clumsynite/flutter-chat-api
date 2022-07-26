@@ -25,7 +25,14 @@ const handleClientOffline = async ({ id, io }) => {
   }
 };
 
+const handleClientTyping = ({ data, io }) => {
+  const { userId, isTyping } = data;
+  io.emit(`${userId}_typing`, isTyping);
+  io.emit(`friend_typing`, { userId, isTyping });
+};
+
 module.exports = {
   handleClientOnline,
   handleClientOffline,
+  handleClientTyping,
 };
