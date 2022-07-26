@@ -10,6 +10,7 @@ const { PORT, DB_URL } = require("./config");
 const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
 const friendRouter = require("./routes/friend");
+const messageRouter = require("./routes/message");
 const { handleClientOnline, handleClientOffline } = require("./socket/presence");
 
 const app = express();
@@ -33,6 +34,7 @@ app.use(express.json());
 app.use(authRouter);
 app.use(userRouter);
 app.use(friendRouter);
+app.use(messageRouter);
 
 mongoose
   .connect(DB_URL)
