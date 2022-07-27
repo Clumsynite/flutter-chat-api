@@ -48,7 +48,7 @@ const getMessagesForId = async (req, res) => {
   }
 };
 
-const deleteMessage = async (req, res) => {
+const deleteSelectedMessages = async (req, res) => {
   try {
     const { ids } = req.params;
     const selectedIds = ids.split("&");
@@ -80,4 +80,4 @@ const deleteMessage = async (req, res) => {
   }
 };
 
-module.exports = { sendMessage, getMessagesForId, deleteMessage };
+module.exports = { sendMessage, getMessagesForId, deleteSelectedMessages };
