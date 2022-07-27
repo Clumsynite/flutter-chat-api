@@ -1,5 +1,6 @@
 const { handleError, handleBadRequest, handleSuccess } = require("../helper/functions");
 const FriendRequest = require("../models/FriendRequest");
+const Message = require("../models/Message");
 const User = require("../models/User");
 
 // create a friend request
@@ -181,11 +182,27 @@ const getAllFriends = async (req, res) => {
   try {
     const user = await User.findById(req.user);
     const promisedFriends = user.friends.map((friend) => User.findById(friend));
+
     const resolvedFriends = await Promise.all(promisedFriends);
+
+    const unreadMessagesReceived = await Message.find({ to: req.user, unread: true });
+
     const mappedFriends = [];
     for (let i = 0; i < resolvedFriends.length; i += 1) {
       const { _id, username, email, firstName, lastName, avatar, isOnline, lastSeen, createdAt } = resolvedFriends[i];
-      const friendObj = { _id, username, email, firstName, lastName, avatar, isOnline, lastSeen, createdAt };
+
+      const friendObj = {
+        _id,
+        username,
+        email,
+        firstName,
+        lastName,
+        avatar,
+        isOnline,
+        lastSeen,
+        createdAt,
+        unreadCount: unreadMessagesReceived.filter((msg) => msg.from === _id.toString()).length,
+      };
       mappedFriends.push(friendObj);
     }
     return handleSuccess(res, mappedFriends);
