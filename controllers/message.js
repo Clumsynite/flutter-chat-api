@@ -80,4 +80,41 @@ const deleteSelectedMessages = async (req, res) => {
   }
 };
 
-module.exports = { sendMessage, getMessagesForId, deleteSelectedMessages };
+const deleteAllMessages = async (req, res) => {
+  try {
+    const { friend } = req.params;
+    const promisedMessages = [
+      Message.find({ from: friend, to: req.user, deletedByReceiver: { $ne: true }, unread: false }), // received messages
+      Message.find({ from: req.user, to: friend, deletedBySender: { $ne: true } }), // sent messages
+    ];
+
+    const resolvedMessages = await Promise.all(promisedMessages);
+
+    const receivedMessages = resolvedMessages[0];
+    const sentMessages = resolvedMessages[1];
+
+    const promisedDeletions = [];
+
+    for (let i = 0; i < receivedMessages.length; i += 1) {
+      const message = receivedMessages[i];
+      message.deletedByReceiver = true;
+      // if message was delete by both sender and receiver, then remove message from database
+      if (message.deletedBySender && message.deletedByReceiver) promisedDeletions.push(message.delete());
+      else promisedDeletions.push(message.save());
+    }
+
+    for (let i = 0; i < sentMessages.length; i += 1) {
+      const message = sentMessages[i];
+      message.deletedBySender = true;
+      // if message was delete by both sender and receiver, then remove message from database
+      if (message.deletedBySender && message.deletedByReceiver) promisedDeletions.push(message.delete());
+      else promisedDeletions.push(message.save());
+    }
+    await Promise.all(resolvedMessages);
+    return handleSuccess(res, true);
+  } catch (error) {
+    return handleError(res, error);
+  }
+};
+
+module.exports = { sendMessage, getMessagesForId, deleteSelectedMessages, deleteAllMessages };
