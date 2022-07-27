@@ -6,6 +6,10 @@ const MessageSchema = mongoose.Schema(
     to: { type: String, required: true },
     text: { type: String, required: true },
     unread: { type: Boolean, default: true },
+    deletedBySender: { type: Boolean }, // from
+    deletedByReceiver: { type: Boolean }, // to
+    // if send and receiver, both delete a message
+    // then, the message document is removed from the database
   },
   { timestamps: true }
 );

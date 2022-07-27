@@ -1,4 +1,4 @@
-const { handleError, handleSuccess } = require("../helper/functions");
+const { handleError, handleSuccess, handleBadRequest } = require("../helper/functions");
 const Message = require("../models/Message");
 const { handleMessageRead } = require("../socket/message");
 
@@ -24,8 +24,8 @@ const getMessagesForId = async (req, res) => {
   try {
     const { friend } = req.params;
     const promisedMessages = [
-      Message.find({ from: friend, to: req.user }),
-      Message.find({ from: req.user, to: friend }),
+      Message.find({ from: friend, to: req.user, deletedByReceiver: { $ne: true } }), // received messages
+      Message.find({ from: req.user, to: friend, deletedBySender: { $ne: true } }), // sent messages
     ];
 
     const resolvedMessages = await Promise.all(promisedMessages);
@@ -48,4 +48,36 @@ const getMessagesForId = async (req, res) => {
   }
 };
 
-module.exports = { sendMessage, getMessagesForId };
+const deleteMessage = async (req, res) => {
+  try {
+    const { ids } = req.params;
+    const selectedIds = ids.split("&");
+    const promisedIds = selectedIds.map((id) => Message.findById(id));
+    const resolvedMessages = await Promise.all(promisedIds);
+
+    const promisedDeletions = [];
+
+    for (let i = 0; i < resolvedMessages.length; i += 1) {
+      const message = resolvedMessages[i];
+      const isSender = message.from === req.user;
+      const isReceiver = message.to === req.user;
+
+      if (isSender) {
+        message.deletedBySender = true;
+      } else if (isReceiver) {
+        message.deletedByReceiver = true;
+      } else {
+        return handleBadRequest(res, { msg: "Not Authorised to delete someone else's message" });
+      }
+      // if message was delete by both sender and receiver, then remove message from database
+      if (message.deletedBySender && message.deletedByReceiver) promisedDeletions.push(message.delete());
+      else promisedDeletions.push(message.save());
+    }
+    await Promise.all(resolvedMessages);
+    return handleSuccess(res, true);
+  } catch (error) {
+    return handleError(res, error);
+  }
+};
+
+module.exports = { sendMessage, getMessagesForId, deleteMessage };
