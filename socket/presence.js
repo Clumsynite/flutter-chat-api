@@ -1,9 +1,10 @@
 const User = require("../models/User");
 
-const handleClientOnline = async ({ id, io }) => {
+const handleClientOnline = async ({ id, io, client }) => {
   const user = await User.findById(id);
   if (user) {
     user.isOnline = true;
+    user.socketId = client.id;
     await user.save();
     for (let i = 0; i < user.friends.length; i += 1) {
       const emitKey = `${user.friends[i]}_online`;
@@ -17,6 +18,7 @@ const handleClientOffline = async ({ id, io }) => {
   if (user) {
     user.isOnline = false;
     user.lastSeen = new Date().toISOString();
+    delete user.socketId;
     await user.save();
     for (let i = 0; i < user.friends.length; i += 1) {
       const emitKey = `${user.friends[i]}_offline`;
@@ -34,8 +36,14 @@ const handleClientTyping = async ({ data, io }) => {
   }
 };
 
+const hdnleClientDisconnect = async ({ client, io }) => {
+  const user = await User.findOne({ socketId: client.id });
+  if (user) handleClientOffline({ id: user.id, io });
+};
+
 module.exports = {
   handleClientOnline,
   handleClientOffline,
   handleClientTyping,
+  hdnleClientDisconnect,
 };

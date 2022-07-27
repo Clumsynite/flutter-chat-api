@@ -11,7 +11,12 @@ const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
 const friendRouter = require("./routes/friend");
 const messageRouter = require("./routes/message");
-const { handleClientOnline, handleClientOffline, handleClientTyping } = require("./socket/presence");
+const {
+  handleClientOnline,
+  handleClientOffline,
+  handleClientTyping,
+  hdnleClientDisconnect,
+} = require("./socket/presence");
 const { handleMessageRead } = require("./socket/message");
 
 const app = express();
@@ -19,10 +24,11 @@ const server = http.createServer(app);
 
 const io = new Server(server, { cors: { origin: "*" } });
 io.on("connection", (client) => {
-  client.on("client_online", (id) => handleClientOnline({ id, io }));
+  client.on("client_online", (id) => handleClientOnline({ id, io, client }));
   client.on("client_offline", (id) => handleClientOffline({ id, io }));
   client.on("client_typing", (data) => handleClientTyping({ data, io })); // data should be an object { userId, isTyping }
   client.on("message_read", (id) => handleMessageRead({ id, io }));
+  client.on("disconnect", () => hdnleClientDisconnect({ client, io }));
 });
 
 app.use((req, res, next) => {

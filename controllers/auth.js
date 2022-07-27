@@ -4,7 +4,6 @@ const { JWT_SECRET } = require("../config");
 
 const { handleBadRequest, handleSuccess, handleError } = require("../helper/functions");
 const User = require("../models/User");
-const { handleClientOnline } = require("../socket/presence");
 
 const signup = async (req, res) => {
   try {
@@ -45,7 +44,6 @@ const signin = async (req, res) => {
 
     const user = usernameExists._doc;
     await usernameExists.save();
-    handleClientOnline({ id: user._id.toString(), io: req._io });
 
     const token = jwt.sign({ ...user }, JWT_SECRET);
     return handleSuccess(res, { token, ...user });
@@ -64,8 +62,6 @@ const isTokenValid = async (req, res) => {
     const decodedToken = jwt.decode(token);
     const user = await User.findById(decodedToken._id);
     if (!user) return res.status(500).json(500);
-
-    handleClientOnline({ id: user._id.toString(), io: req._io });
 
     return res.status(200).json(true);
   } catch (error) {

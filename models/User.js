@@ -51,6 +51,9 @@ const UserSchema = mongoose.Schema(
     lastSeen: {
       type: Date,
     },
+    socketId: {
+      type: String,
+    },
   },
   {
     timestamps: true,

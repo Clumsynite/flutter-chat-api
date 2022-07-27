@@ -1,13 +1,11 @@
 const { handleError, handleBadRequest, handleSuccess } = require("../helper/functions");
 const FriendRequest = require("../models/FriendRequest");
 const User = require("../models/User");
-const { handleClientOnline } = require("../socket/presence");
 
 const getUser = async (req, res) => {
   try {
     const user = await User.findById(req.user);
     if (!user) return handleBadRequest(res, "User not found");
-    handleClientOnline({ id: user._id.toString(), io: req._io });
     return handleSuccess(res, { ...user._doc, token: req.token });
   } catch (error) {
     return handleError(res, error);
