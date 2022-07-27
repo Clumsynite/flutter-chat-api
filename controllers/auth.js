@@ -40,6 +40,8 @@ const signin = async (req, res) => {
 
     const passwordMatches = await bcryptjs.compare(password, usernameExists.password);
     if (!passwordMatches) return handleBadRequest(res, "Username or password doesn't match");
+
+    if (usernameExists.socketId) return handleBadRequest(res, "Account is already logged in another device");
     usernameExists.isOnline = true;
 
     const user = usernameExists._doc;
