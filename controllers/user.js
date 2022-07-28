@@ -1,3 +1,7 @@
+const bcryptjs = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
+const { JWT_SECRET } = require("../config");
 const { handleError, handleBadRequest, handleSuccess } = require("../helper/functions");
 const FriendRequest = require("../models/FriendRequest");
 const User = require("../models/User");
@@ -52,8 +56,8 @@ const updateUserDetails = async (req, res) => {
     if (lastName) user.lastName = lastName;
     if (email) user.email = email;
 
-    const isValid = await user.validate();
-    if (isValid) await user.save();
+    await user.validate();
+    await user.save();
 
     return handleSuccess(res, { ...user._doc, token: req.token });
   } catch (error) {
@@ -61,4 +65,25 @@ const updateUserDetails = async (req, res) => {
   }
 };
 
-module.exports = { getUser, getAllUsers, updateUserDetails };
+const changePassword = async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+    const user = await User.findById(req.user);
+    if (!user) return handleBadRequest(res, "User not found");
+
+    if (newPassword) {
+      const hashedPassword = await bcryptjs.hash(newPassword, 8);
+      user.password = hashedPassword;
+    }
+
+    await user.validate();
+    await user.save();
+    const token = jwt.sign({ ...user._doc }, JWT_SECRET);
+
+    return handleSuccess(res, { ...user._doc, token });
+  } catch (error) {
+    return handleError(res, error);
+  }
+};
+
+module.exports = { getUser, getAllUsers, updateUserDetails, changePassword };
