@@ -42,4 +42,23 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-module.exports = { getUser, getAllUsers };
+const updateUserDetails = async (req, res) => {
+  try {
+    const { firstName, lastName, email } = req.body;
+    const user = await User.findById(req.user);
+    if (!user) return handleBadRequest(res, "User not found");
+
+    if (firstName) user.firstName = firstName;
+    if (lastName) user.lastName = lastName;
+    if (email) user.email = email;
+
+    const isValid = await user.validate();
+    if (isValid) await user.save();
+
+    return handleSuccess(res, { ...user._doc, token: req.token });
+  } catch (error) {
+    return handleError(res, error);
+  }
+};
+
+module.exports = { getUser, getAllUsers, updateUserDetails };
