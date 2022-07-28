@@ -13,9 +13,9 @@ const handleClientOnline = async ({ id, io, client }) => {
   }
 };
 
-const handleClientOffline = async ({ id, io }) => {
+const handleClientOffline = async ({ id, io, isForced }) => {
   const user = await User.findById(id);
-  io.emit(`${user._id}_logout`);
+  if (isForced) io.emit(`${user._id}_logout`);
   if (user) {
     user.isOnline = false;
     user.lastSeen = new Date().toISOString();
@@ -39,7 +39,7 @@ const handleClientTyping = async ({ data, io }) => {
 
 const hdnleClientDisconnect = async ({ client, io }) => {
   const user = await User.findOne({ socketId: client.id });
-  if (user) handleClientOffline({ id: user.id, io });
+  if (user) handleClientOffline({ id: user.id, io, isForced: true });
 };
 
 module.exports = {
