@@ -15,6 +15,7 @@ const handleClientOnline = async ({ id, io, client }) => {
 
 const handleClientOffline = async ({ id, io }) => {
   const user = await User.findById(id);
+  io.emit(`${user._id}_logout`);
   if (user) {
     user.isOnline = false;
     user.lastSeen = new Date().toISOString();
