@@ -7,6 +7,7 @@ const User = require("../models/User");
 const createfriendRequest = async (req, res) => {
   try {
     const { to } = req.body;
+    let msg = "";
     const existingRequest = await FriendRequest.findOne({ from: req.user, to });
     if (existingRequest) return handleBadRequest(res, "Friend Request already exists");
     const userToFriend = await User.findById(to);
@@ -27,6 +28,7 @@ const createfriendRequest = async (req, res) => {
       await incomingRequest.delete();
       await currrentUser.save();
       await userToFriend.save();
+      msg = "Friend added successfully";
     } else {
       // if no incoming request exists, create a new request
       const request = new FriendRequest({
@@ -34,10 +36,11 @@ const createfriendRequest = async (req, res) => {
         to,
       });
       await request.save();
+      msg = "Friend Request accepted successfully";
     }
     req._io.emit(`${to}_friend`, true);
     req._io.emit(`${req.user}_friend`, true);
-    return handleSuccess(res, { msg: "AAA" });
+    return handleSuccess(res, { msg });
   } catch (error) {
     return handleError(res, error);
   }
