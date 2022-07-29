@@ -11,7 +11,7 @@ router.post("/friend-request/cancel", auth, friendController.cancelFriendRequest
 router.post("/friend-request/", auth, friendController.createfriendRequest); // create new friend request
 router.delete("/friend-request/:to", auth, friendController.deletefriendRequest); // delete friend request by contact id
 
-router.get("/friend/", auth, friendController.getAllFriends); // accept friend request
+router.get("/friend/", auth, friendController.getAllFriends); // get all friends
 router.post("/friend/", auth, friendController.acceptFriendRequest); // accept friend request
 router.delete("/friend/:_id", auth, friendController.removeFriend); // remove contact from friend list
 
